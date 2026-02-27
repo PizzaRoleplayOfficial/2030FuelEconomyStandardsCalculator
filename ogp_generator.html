@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>OGP画像生成ツール</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@900&display=swap');
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            text-align: center;
+            padding: 50px;
+            background: #f5f5f7;
+            color: #333;
+        }
+
+        canvas {
+            border: 1px solid #d2d2d7;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 12px;
+        }
+
+        .btn {
+            padding: 16px 32px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 980px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .btn:hover {
+            transform: scale(1.02);
+            background: #0071e3;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>アプリ専用 OGP（SNSプレビュー）画像生成</h2>
+    <p>DiscordなどでURLを共有した際に表示される「文字入りの画像」を生成します。<br>下のボタンを押して画像をダウンロードし、プロジェクトフォルダに保存してください。</p>
+
+    <div>
+        <canvas id="canvas" width="1200" height="630"></canvas>
+    </div>
+
+    <button id="downloadBtn" class="btn">ogp_image.png をダウンロード</button>
+
+    <script>
+        window.onload = function () {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // OGP standard size: 1200x630
+            // Fill white background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 1200, 630);
+
+            const img = new Image();
+            img.onload = function () {
+                // Draw base sticker
+                const imgW = 750;
+                const imgH = 540;
+                const imgX = (1200 - imgW) / 2;
+                const imgY = (630 - imgH) / 2;
+
+                ctx.shadowColor = 'rgba(0,0,0,0.15)';
+                ctx.shadowBlur = 30;
+                ctx.shadowOffsetY = 15;
+                ctx.drawImage(img, imgX, imgY, imgW, imgH);
+
+                // Reset shadow for text
+                ctx.shadowColor = 'transparent';
+
+                // Draw text
+                ctx.fillStyle = '#064e3b';
+                ctx.font = '900 76px "Noto Sans JP", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                // Add text glow/shadow
+                ctx.shadowColor = 'rgba(255, 255, 255, 0.95)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 2;
+
+                ctx.fillText('2030年度', 600, 230);
+                ctx.fillText('燃費優良車', 600, 320);
+
+                // Draw stars
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+                ctx.shadowBlur = 12;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 6;
+
+                const grad = ctx.createLinearGradient(0, 420, 0, 520);
+                grad.addColorStop(0, '#f59e0b');
+                grad.addColorStop(1, '#fbbf24');
+                ctx.fillStyle = grad;
+                // Use standard sans-serif for stars so they render properly
+                ctx.font = '900 120px sans-serif';
+                ctx.fillText('★★★★★', 600, 470);
+            };
+            // Load the existing clean sticker
+            img.src = 'sticker_clean.png';
+
+            document.getElementById('downloadBtn').addEventListener('click', function () {
+                const link = document.createElement('a');
+                link.download = 'ogp_image.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        };
+    </script>
+</body>
+
+</html>
