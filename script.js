@@ -319,25 +319,57 @@ function resetApp() {
 
 // Sharing logic
 async function shareResult() {
-    const rate = document.getElementById('achievement-rate').textContent;
+    const rate = parseFloat(document.getElementById('achievement-rate').textContent);
     const stars = document.getElementById('star-count-display').textContent;
     const type = getCategoryName(userSelections.category);
 
-    const text = `私の愛車(${type})の2030年度燃費基準達成率は【${rate}%】！\n獲得した星は【${stars}個】でした！\n最新の燃費基準を皆も測ってみよう！ 🚗✨\n#EcoCalcPro #2030燃費基準`;
+    // 動的メッセージの生成
+    let baseText = "";
+    if (rate >= 100) {
+        baseText = `私の愛車(${type})は【2030年度燃費優良車】です！✨\n基準達成率【${rate}%】で星【${stars}個】を獲得しました！`;
+    } else if (rate >= 80) {
+        baseText = `私の愛車(${type})はとってもエコ！🌱\n2030年度燃費基準達成率は【${rate}%】で星【${stars}個】でした！`;
+    } else {
+        baseText = `私の愛車(${type})の2030年度燃費基準達成率は【${rate}%】！(星${stars}個)\nこれからのエコドライブに期待です🚗💨`;
+    }
 
+    const text = `${baseText}\nあなたの車はどうでしょう？チェック！\n最新の燃費基準を皆も測ってみよう！🚗✨\n#EcoCalcPro #2030燃費基準`;
+
+    const liveUrl = 'https://pizzaroleplayofficial.github.io/2030FuelEconomyStandardsCalculator/';
+
+    // ネイティブシェア（画像付き）の試行
+    try {
+        const response = await fetch('sticker_clean.png');
+        const blob = await response.blob();
+        const file = new File([blob], 'sticker.png', { type: blob.type });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+                title: '2030年度燃費基準結果',
+                text: text,
+                files: [file],
+                url: liveUrl // 一部のネイティブUIではURLとFileの同時シェアがサポートされない場合があるが、基本は併記
+            });
+            return; // 成功したら終了
+        }
+    } catch (e) {
+        console.log("画像シェアの準備に失敗したか、ファイルシェア非対応です:", e);
+    }
+
+    // 画像付きシェアが非対応（PC等）の場合のフォールバック（テキスト＋URL）
     if (navigator.share) {
         try {
             await navigator.share({
                 title: '2030年度燃費基準結果',
                 text: text,
-                url: window.location.href, // This works if hosted online
+                url: liveUrl,
             });
         } catch (err) {
             console.log("シェアをキャンセルしたか、エラーが発生しました:", err);
         }
     } else {
-        // Fallback to Twitter
-        const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`;
+        // 全くWeb Share APIをサポートしていないブラウザの場合はTwitter(X)のWeb URLへ
+        const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(liveUrl)}`;
         window.open(url, '_blank');
     }
 }
